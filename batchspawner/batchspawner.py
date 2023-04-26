@@ -421,7 +421,11 @@ class BatchSpawnerBase(Spawner):
         if self.server:
             self.server.port = self.port
 
-        job = await self.submit_batch_script()
+        try:
+            job = await self.submit_batch_script()
+        except Exception as e:
+            self.log.debug(f"RL: exception on submit: {e}")
+            raise RuntimeError(f"Error submitting batch script. {e}")
 
         # We are called with a timeout, and if the timeout expires this function will
         # be interrupted at the next yield, and self.stop() will be called.
