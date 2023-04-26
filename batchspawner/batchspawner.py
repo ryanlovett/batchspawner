@@ -291,7 +291,6 @@ class BatchSpawnerBase(Spawner):
         self.log.info("Spawner submitting job using " + cmd)
         self.log.info("Spawner submitted script:\n" + script)
         out = await self.run_command(cmd, input=script, env=self.get_env())
-        self.log.debug(f"RL: out: {out}")
         try:
             self.log.info("Job submitted. cmd: " + cmd + " output: " + out)
             self.job_id = self.parse_job_id(out)
@@ -414,18 +413,17 @@ class BatchSpawnerBase(Spawner):
 
     async def start(self):
         """Start the process"""
-        self.log.debug("RL: start")
         self.ip = self.traits()["ip"].default_value
         self.port = self.traits()["port"].default_value
 
         if self.server:
             self.server.port = self.port
 
-        try:
-            job = await self.submit_batch_script()
-        except Exception as e:
-            self.log.debug(f"RL: exception on submit: {e}")
-            raise RuntimeError(f"Error submitting batch script. {e}")
+        #try:
+        job = await self.submit_batch_script()
+        #except Exception as e:
+        #    self.log.debug(f"RL: exception on submit: {e}")
+        #    raise RuntimeError(f"Error submitting batch script. {e}")
 
         # We are called with a timeout, and if the timeout expires this function will
         # be interrupted at the next yield, and self.stop() will be called.
@@ -437,7 +435,6 @@ class BatchSpawnerBase(Spawner):
             )
         while True:
             status = await self.query_job_status()
-            self.log.debug(f"RL: true loop: status: {status}")
             if status == JobStatus.RUNNING:
                 break
             elif status == JobStatus.PENDING:
@@ -462,7 +459,6 @@ class BatchSpawnerBase(Spawner):
         self.ip = self.state_gethost()
         while self.port == 0:
             await gen.sleep(self.startup_poll_interval)
-            self.log.debug("RL: port loop")
             # Test framework: For testing, mock_port is set because we
             # don't actually run the single-user server yet.
             if hasattr(self, "mock_port"):
